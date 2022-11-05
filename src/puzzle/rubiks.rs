@@ -46,17 +46,17 @@ impl Rubik {
 
     pub fn create_texture(&self) -> Image {
         let data = [
-            self.colors.right.as_linear_rgba_f32(),
-            self.colors.left.as_linear_rgba_f32(),
-            self.colors.top.as_linear_rgba_f32(),
-            self.colors.bottom.as_linear_rgba_f32(),
-            self.colors.front.as_linear_rgba_f32(),
-            self.colors.back.as_linear_rgba_f32(),
-            crate::color::GRAY.as_linear_rgba_f32(),
+            self.colors.right.as_rgba_f32(),
+            self.colors.left.as_rgba_f32(),
+            self.colors.top.as_rgba_f32(),
+            self.colors.bottom.as_rgba_f32(),
+            self.colors.front.as_rgba_f32(),
+            self.colors.back.as_rgba_f32(),
+            crate::color::GRAY.as_rgba_f32(),
         ]
         .into_iter()
         .flatten()
-        .flat_map(|color| color.to_le_bytes())
+        .map(|color| (255.0 * color) as u8)
         .collect();
 
         Image::new(
@@ -67,7 +67,7 @@ impl Rubik {
             },
             TextureDimension::D2,
             data,
-            TextureFormat::Rgba32Float,
+            TextureFormat::Rgba8UnormSrgb,
         )
     }
 
