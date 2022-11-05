@@ -1,10 +1,11 @@
+mod camera;
 mod color;
 mod puzzle;
 
+use crate::camera::{CameraPlugin, CameraSettings};
 use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::prelude::*;
 use bevy::render::settings::{WgpuFeatures, WgpuSettings};
-use bevy_flycam::{MovementSettings, PlayerPlugin};
 
 fn main() {
     App::new()
@@ -12,13 +13,9 @@ fn main() {
             features: WgpuFeatures::POLYGON_MODE_LINE,
             ..default()
         })
-        .insert_resource(MovementSettings {
-            sensitivity: 0.00005, // default: 0.00012
-            speed: 4.0,           // default: 12.0
-        })
         .add_plugins(DefaultPlugins)
         .add_plugin(WireframePlugin)
-        .add_plugin(PlayerPlugin)
+        .add_plugin(CameraPlugin::new(CameraSettings::default()))
         .add_startup_system(setup)
         .run();
 }
