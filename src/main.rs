@@ -1,8 +1,10 @@
 mod camera;
 mod color;
 mod puzzle;
+mod view;
 
 use crate::camera::{CameraPlugin, CameraSettings};
+use crate::view::{View, ViewPlugin};
 use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::prelude::*;
 use bevy::render::settings::{WgpuFeatures, WgpuSettings};
@@ -16,7 +18,8 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(WireframePlugin)
         .add_plugin(CameraPlugin::new(CameraSettings::default()))
-        .add_startup_system(setup)
+        .add_plugin(ViewPlugin)
+        .add_startup_system_to_stage(StartupStage::PostStartup, setup)
         .run();
 }
 
@@ -25,6 +28,7 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut images: ResMut<Assets<Image>>,
+    view_query: Query<Entity, With<View>>,
 ) {
     let rubik = puzzle::rubiks::Rubik::new(3);
 
@@ -38,9 +42,11 @@ fn setup(
         ..default()
     });
 
-    for (mesh, transform) in rubik.create_meshes() {
-        commands
-            .spawn_bundle(PbrBundle {
+    let view_entity = view_query.single();
+
+    commands.entity(view_entity).add_children(|builder| {
+        for (mesh, transform) in rubik.create_meshes() {
+            builder.spawn_bundle(PbrBundle {
                 transform,
                 mesh: meshes.add(mesh),
                 material: material.clone(),
