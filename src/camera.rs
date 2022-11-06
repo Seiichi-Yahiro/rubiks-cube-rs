@@ -221,7 +221,6 @@ fn fly_camera_look_around(
 
     let mut transform = query.single_mut();
 
-    transform.rotation = Quat::from_rotation_y(fly_camera.yaw)
-        * Quat::from_rotation_x(fly_camera.pitch)
-        * current_rotation;
+    transform.rotation =
+        Quat::from_euler(EulerRot::YXZ, fly_camera.yaw, fly_camera.pitch, 0.0) * current_rotation;
 }

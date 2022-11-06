@@ -62,6 +62,5 @@ fn change_view(
     }
 
     let mut view = query.single_mut();
-    view.rotation =
-        Quat::from_rotation_x(view_rotation.pitch) * Quat::from_rotation_y(view_rotation.yaw);
+    view.rotation = Quat::from_euler(EulerRot::XYZ, view_rotation.pitch, view_rotation.yaw, 0.0);
 }
