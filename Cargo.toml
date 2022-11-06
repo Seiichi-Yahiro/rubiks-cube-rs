@@ -3,5 +3,11 @@ name = "rubiks-cube-rs"
 version = "0.1.0"
 edition = "2021"
 
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+
 [dependencies]
 bevy = "0.8.1"
