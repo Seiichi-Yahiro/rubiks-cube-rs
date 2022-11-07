@@ -1,15 +1,15 @@
-use bevy::prelude::{Color, Image, Mesh, Transform};
+use bevy::prelude::{Color, Image, Mesh, Transform, Vec3};
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 
-const CUBE_SIZE: f32 = 1.0;
+const TOTAL_SIDE_LENGTH: f32 = 1.0;
+const GAP_SIZE: f32 = 0.005;
 const NUMBER_OF_SIDES: u32 = 6;
 const NUMBER_OF_COLORS: u32 = NUMBER_OF_SIDES + 1;
 
 pub struct Rubik {
     pub dimension: u32,
     pub colors: Colors,
-    //size: f32,
 }
 
 pub struct Colors {
@@ -71,9 +71,23 @@ impl Rubik {
         )
     }
 
+    fn get_cube_side_length(&self) -> f32 {
+        let gap_space = (self.dimension - 1) as f32 * GAP_SIZE;
+        let remaining_space = TOTAL_SIDE_LENGTH - gap_space;
+        remaining_space / self.dimension as f32
+    }
+
+    fn get_tile_translation(&self, [x, y, z]: [u32; 3]) -> Vec3 {
+        let cube_side_length = self.get_cube_side_length();
+        let offset = (TOTAL_SIDE_LENGTH + cube_side_length) / 2.0;
+        let vec = Vec3::new(x as f32, y as f32, z as f32);
+
+        -(vec * (cube_side_length + GAP_SIZE) - GAP_SIZE - offset)
+    }
+
     pub fn create_meshes(&self) -> Vec<(Mesh, Transform)> {
         if self.dimension == 1 {
-            let mesh = Self::create_cube_mesh([0, 1, 2, 3, 4, 5]);
+            let mesh = self.create_cube_mesh([0, 1, 2, 3, 4, 5]);
             let transform = Transform::identity();
             vec![(mesh, transform)]
         } else {
@@ -82,21 +96,12 @@ impl Rubik {
 
             let mut meshes: Vec<(Mesh, Transform)> = Vec::with_capacity(number_of_tiles);
 
-            let offset = CUBE_SIZE * (self.dimension + 1) as f32 / 2.0;
-
-            let create_translation = |x, y, z| {
-                Transform::from_xyz(
-                    -(x as f32) * CUBE_SIZE + offset,
-                    -(y as f32) * CUBE_SIZE + offset,
-                    -(z as f32) * CUBE_SIZE + offset,
-                )
-            };
-
             for x in [1, self.dimension] {
                 for y in 1..=self.dimension {
                     for z in 1..=self.dimension {
-                        let mesh = Self::create_cube_mesh(self.get_color_map([x, y, z]));
-                        let transform = create_translation(x, y, z);
+                        let mesh = self.create_cube_mesh(self.get_color_map([x, y, z]));
+                        let transform =
+                            Transform::from_translation(self.get_tile_translation([x, y, z]));
                         meshes.push((mesh, transform));
                     }
                 }
@@ -105,8 +110,9 @@ impl Rubik {
             for y in [1, self.dimension] {
                 for z in 1..=self.dimension {
                     for x in 2..self.dimension {
-                        let mesh = Self::create_cube_mesh(self.get_color_map([x, y, z]));
-                        let transform = create_translation(x, y, z);
+                        let mesh = self.create_cube_mesh(self.get_color_map([x, y, z]));
+                        let transform =
+                            Transform::from_translation(self.get_tile_translation([x, y, z]));
                         meshes.push((mesh, transform));
                     }
                 }
@@ -115,8 +121,9 @@ impl Rubik {
             for z in [1, self.dimension] {
                 for x in 2..self.dimension {
                     for y in 2..self.dimension {
-                        let mesh = Self::create_cube_mesh(self.get_color_map([x, y, z]));
-                        let transform = create_translation(x, y, z);
+                        let mesh = self.create_cube_mesh(self.get_color_map([x, y, z]));
+                        let transform =
+                            Transform::from_translation(self.get_tile_translation([x, y, z]));
                         meshes.push((mesh, transform));
                     }
                 }
@@ -162,17 +169,17 @@ impl Rubik {
         color_map
     }
 
-    fn create_cube_mesh(color_map: ColorMap) -> Mesh {
+    fn create_cube_mesh(&self, color_map: ColorMap) -> Mesh {
         const NUMBER_OF_VERTICES_PER_SIDE: usize = 4;
         const CAPACITY: usize = NUMBER_OF_VERTICES_PER_SIDE * NUMBER_OF_SIDES as usize;
-        const HALF_SIZE: f32 = CUBE_SIZE / 2.0;
+        let half_cube_side_length = self.get_cube_side_length() / 2.0;
 
         let mut positions: Vec<[f32; 3]> = Vec::with_capacity(CAPACITY);
 
         for axis in 0..3 {
-            for x in [HALF_SIZE, -HALF_SIZE] {
-                for y in [HALF_SIZE, -HALF_SIZE] {
-                    for z in [HALF_SIZE, -HALF_SIZE] {
+            for x in [half_cube_side_length, -half_cube_side_length] {
+                for y in [half_cube_side_length, -half_cube_side_length] {
+                    for z in [half_cube_side_length, -half_cube_side_length] {
                         let mut position = [x, y, z];
                         position.rotate_right(axis);
                         positions.push(position);
