@@ -14,3 +14,7 @@ pub const YELLOW: Color = Color::rgb(0.992, 0.8, 0.035);
 pub const WHITE: Color = Color::WHITE;
 /// <div style="background-color:rgb(22%, 22%, 22%); width: 10px; padding: 10px; border: 1px solid;"></div>
 pub const GRAY: Color = Color::rgb(0.22, 0.22, 0.22);
+/// <div style="background-color:rgb(100%, 86.27%, 61.57%); width: 10px; padding: 10px; border: 1px solid;"></div>
+pub const GOLD: Color = Color::rgb(1.0, 0.8627, 0.6157);
+/// <div style="background-color:rgb(100%, 97.65%, 96.01%); width: 10px; padding: 10px; border: 1px solid;"></div>
+pub const SILVER: Color = Color::rgb(1.0, 0.9765, 0.9601);
