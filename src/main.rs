@@ -34,14 +34,7 @@ fn setup(
     let puzzle: Box<dyn Puzzle> = Box::new(puzzle::rubiks::Rubik::new(3));
 
     let texture = images.add(puzzle.create_texture());
-
-    let material = materials.add(StandardMaterial {
-        base_color: Color::WHITE,
-        base_color_texture: Some(texture),
-        perceptual_roughness: 0.15,
-        unlit: false,
-        ..default()
-    });
+    let material = materials.add(puzzle.create_material(texture));
 
     let view_entity = view_query.single();
 

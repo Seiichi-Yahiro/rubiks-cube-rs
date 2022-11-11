@@ -1,6 +1,7 @@
 use super::{GAP_SIZE, TOTAL_SIDE_LENGTH};
 use crate::puzzle::Puzzle;
-use bevy::prelude::{Color, Image, Mesh, Transform, Vec3};
+use crate::StandardMaterial;
+use bevy::prelude::{Color, Handle, Image, Mesh, Transform, Vec3};
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 
@@ -62,6 +63,15 @@ impl Puzzle for Rubik {
             data,
             TextureFormat::Rgba8UnormSrgb,
         )
+    }
+
+    fn create_material(&self, texture: Handle<Image>) -> StandardMaterial {
+        StandardMaterial {
+            base_color: Color::WHITE,
+            base_color_texture: Some(texture),
+            perceptual_roughness: 0.15,
+            ..Default::default()
+        }
     }
 
     fn create_meshes(&self) -> Vec<(Mesh, Transform)> {
