@@ -4,6 +4,7 @@ mod puzzle;
 mod view;
 
 use crate::camera::{CameraPlugin, CameraSettings};
+use crate::puzzle::Puzzle;
 use crate::view::{View, ViewPlugin};
 use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::prelude::*;
@@ -30,9 +31,9 @@ fn setup(
     mut images: ResMut<Assets<Image>>,
     view_query: Query<Entity, With<View>>,
 ) {
-    let rubik = puzzle::rubiks::Rubik::new(3);
+    let puzzle: Box<dyn Puzzle> = Box::new(puzzle::rubiks::Rubik::new(3));
 
-    let texture = images.add(rubik.create_texture());
+    let texture = images.add(puzzle.create_texture());
 
     let material = materials.add(StandardMaterial {
         base_color: Color::WHITE,
@@ -45,15 +46,17 @@ fn setup(
     let view_entity = view_query.single();
 
     commands.entity(view_entity).add_children(|builder| {
-        for (mesh, transform) in rubik.create_meshes() {
-            builder.spawn_bundle(PbrBundle {
-                transform,
-                mesh: meshes.add(mesh),
-                material: material.clone(),
-                ..default()
-            })
-            .insert(Wireframe);
-    }
+        for (mesh, transform) in puzzle.create_meshes() {
+            builder
+                .spawn_bundle(PbrBundle {
+                    transform,
+                    mesh: meshes.add(mesh),
+                    material: material.clone(),
+                    ..default()
+                })
+                .insert(Wireframe);
+        }
+    });
 
     commands.spawn_bundle(DirectionalLightBundle {
         directional_light: DirectionalLight {

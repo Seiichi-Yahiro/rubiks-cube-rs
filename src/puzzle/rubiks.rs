@@ -1,9 +1,9 @@
+use super::{GAP_SIZE, TOTAL_SIDE_LENGTH};
+use crate::puzzle::Puzzle;
 use bevy::prelude::{Color, Image, Mesh, Transform, Vec3};
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 
-const TOTAL_SIDE_LENGTH: f32 = 1.0;
-const GAP_SIZE: f32 = 0.005;
 const NUMBER_OF_SIDES: u32 = 6;
 const NUMBER_OF_COLORS: u32 = NUMBER_OF_SIDES + 1;
 
@@ -36,15 +36,8 @@ impl Default for Colors {
 
 type ColorMap = [u32; NUMBER_OF_SIDES as usize];
 
-impl Rubik {
-    pub fn new(dimension: u32) -> Self {
-        Self {
-            dimension,
-            colors: Colors::default(),
-        }
-    }
-
-    pub fn create_texture(&self) -> Image {
+impl Puzzle for Rubik {
+    fn create_texture(&self) -> Image {
         let data = [
             self.colors.right.as_rgba_f32(),
             self.colors.left.as_rgba_f32(),
@@ -71,21 +64,7 @@ impl Rubik {
         )
     }
 
-    fn get_cube_side_length(&self) -> f32 {
-        let gap_space = (self.dimension - 1) as f32 * GAP_SIZE;
-        let remaining_space = TOTAL_SIDE_LENGTH - gap_space;
-        remaining_space / self.dimension as f32
-    }
-
-    fn get_tile_translation(&self, [x, y, z]: [u32; 3]) -> Vec3 {
-        let cube_side_length = self.get_cube_side_length();
-        let offset = (TOTAL_SIDE_LENGTH + cube_side_length) / 2.0;
-        let vec = Vec3::new(x as f32, y as f32, z as f32);
-
-        -(vec * (cube_side_length + GAP_SIZE) - GAP_SIZE - offset)
-    }
-
-    pub fn create_meshes(&self) -> Vec<(Mesh, Transform)> {
+    fn create_meshes(&self) -> Vec<(Mesh, Transform)> {
         if self.dimension == 1 {
             let mesh = self.create_cube_mesh([0, 1, 2, 3, 4, 5]);
             let transform = Transform::identity();
@@ -131,6 +110,29 @@ impl Rubik {
 
             meshes
         }
+    }
+}
+
+impl Rubik {
+    pub fn new(dimension: u32) -> Self {
+        Self {
+            dimension,
+            colors: Colors::default(),
+        }
+    }
+
+    fn get_cube_side_length(&self) -> f32 {
+        let gap_space = (self.dimension - 1) as f32 * GAP_SIZE;
+        let remaining_space = TOTAL_SIDE_LENGTH - gap_space;
+        remaining_space / self.dimension as f32
+    }
+
+    fn get_tile_translation(&self, [x, y, z]: [u32; 3]) -> Vec3 {
+        let cube_side_length = self.get_cube_side_length();
+        let offset = (TOTAL_SIDE_LENGTH + cube_side_length) / 2.0;
+        let vec = Vec3::new(x as f32, y as f32, z as f32);
+
+        -(vec * (cube_side_length + GAP_SIZE) - GAP_SIZE - offset)
     }
 
     fn get_color_map(&self, [x, y, z]: [u32; 3]) -> ColorMap {
