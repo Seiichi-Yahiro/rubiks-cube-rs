@@ -6,18 +6,11 @@ mod view;
 use crate::camera::{CameraPlugin, CameraSettings};
 use crate::puzzle::Puzzle;
 use crate::view::{View, ViewPlugin};
-use bevy::pbr::wireframe::{Wireframe, WireframePlugin};
 use bevy::prelude::*;
-use bevy::render::settings::{WgpuFeatures, WgpuSettings};
 
 fn main() {
     App::new()
-        .insert_resource(WgpuSettings {
-            features: WgpuFeatures::POLYGON_MODE_LINE,
-            ..default()
-        })
         .add_plugins(DefaultPlugins)
-        .add_plugin(WireframePlugin)
         .add_plugin(CameraPlugin::new(CameraSettings::default()))
         .add_plugin(ViewPlugin)
         .add_startup_system_to_stage(StartupStage::PostStartup, setup)
@@ -40,21 +33,19 @@ fn setup(
 
     commands.entity(view_entity).add_children(|builder| {
         for (mesh, transform) in puzzle.create_meshes() {
-            builder
-                .spawn_bundle(PbrBundle {
-                    transform,
-                    mesh: meshes.add(mesh),
-                    material: material.clone(),
-                    ..default()
-                })
-                .insert(Wireframe);
+            builder.spawn_bundle(PbrBundle {
+                transform,
+                mesh: meshes.add(mesh),
+                material: material.clone(),
+                ..default()
+            });
         }
     });
 
     commands.spawn_bundle(DirectionalLightBundle {
         directional_light: DirectionalLight {
             illuminance: 50_000.0,
-            shadows_enabled: false,
+            shadows_enabled: true,
             ..default()
         },
         ..default()
