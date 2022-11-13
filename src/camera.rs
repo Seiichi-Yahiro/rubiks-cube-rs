@@ -1,6 +1,7 @@
 use bevy::ecs::schedule::ShouldRun;
 use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
+use bevy::window::CursorGrabMode;
 
 #[derive(Debug, Copy, Clone)]
 pub struct CameraPlugin {
@@ -19,11 +20,11 @@ impl Plugin for CameraPlugin {
 
         #[cfg(debug_assertions)]
         app.insert_resource(FlyCamera::default())
-            .add_system(cursor_lock.with_run_criteria(is_flying))
+            .add_system(cursor_grab.with_run_criteria(is_flying))
             .add_system_set(
                 SystemSet::new()
                     .label("fly_camera")
-                    .with_run_criteria(is_cursor_locked)
+                    .with_run_criteria(is_cursor_confined)
                     .with_system(fly_camera_look_around)
                     .with_system(fly_camera_movement),
             )
@@ -61,7 +62,7 @@ impl Default for StaticCameraSettings {
 }
 
 #[cfg(debug_assertions)]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Resource)]
 struct FlyCamera {
     pitch: f32,
     yaw: f32,
@@ -84,7 +85,7 @@ impl Default for FlyingCameraSettings {
     }
 }
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, Resource)]
 pub struct CameraSettings {
     #[cfg(debug_assertions)]
     pub mode: Mode,
@@ -99,7 +100,7 @@ fn setup(mut commands: Commands, camera_settings: Res<CameraSettings>) {
     let transform = Transform::from_translation(camera_settings.static_settings.pos)
         .looking_at(camera_settings.static_settings.looking_at, Vec3::Y);
 
-    commands.spawn_bundle(Camera3dBundle {
+    commands.spawn(Camera3dBundle {
         transform,
         ..default()
     });
@@ -120,7 +121,7 @@ fn mode_switch(
         camera_settings.mode = match camera_settings.mode {
             Mode::Static => {
                 window.set_cursor_visibility(false);
-                window.set_cursor_lock_mode(true);
+                window.set_cursor_grab_mode(CursorGrabMode::Confined);
 
                 fly_camera.yaw = 0.0;
                 fly_camera.pitch = 0.0;
@@ -129,7 +130,7 @@ fn mode_switch(
             }
             Mode::Flying => {
                 window.set_cursor_visibility(true);
-                window.set_cursor_lock_mode(false);
+                window.set_cursor_grab_mode(CursorGrabMode::None);
 
                 *transform = Transform::from_translation(camera_settings.static_settings.pos)
                     .looking_at(camera_settings.static_settings.looking_at, Vec3::Y);
@@ -149,22 +150,27 @@ fn is_flying(camera_settings: Res<CameraSettings>) -> ShouldRun {
 }
 
 #[cfg(debug_assertions)]
-fn cursor_lock(keyboard_input: Res<Input<KeyCode>>, mut windows: ResMut<Windows>) {
+fn cursor_grab(keyboard_input: Res<Input<KeyCode>>, mut windows: ResMut<Windows>) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
         let window = windows.get_primary_mut().unwrap();
         window.set_cursor_visibility(!window.cursor_visible());
-        window.set_cursor_lock_mode(!window.cursor_locked());
+
+        let grab_mode = match window.cursor_grab_mode() {
+            CursorGrabMode::None => CursorGrabMode::Confined,
+            CursorGrabMode::Confined | CursorGrabMode::Locked => CursorGrabMode::None,
+        };
+
+        window.set_cursor_grab_mode(grab_mode);
     }
 }
 
 #[cfg(debug_assertions)]
-fn is_cursor_locked(windows: Res<Windows>) -> ShouldRun {
+fn is_cursor_confined(windows: Res<Windows>) -> ShouldRun {
     let window = windows.get_primary().unwrap();
 
-    if window.cursor_locked() {
-        ShouldRun::Yes
-    } else {
-        ShouldRun::No
+    match window.cursor_grab_mode() {
+        CursorGrabMode::Confined => ShouldRun::Yes,
+        CursorGrabMode::None | CursorGrabMode::Locked => ShouldRun::No,
     }
 }
 

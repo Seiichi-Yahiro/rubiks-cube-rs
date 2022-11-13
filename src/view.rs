@@ -14,16 +14,14 @@ impl Plugin for ViewPlugin {
 #[derive(Component)]
 pub struct View;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Resource)]
 struct ViewRotation {
     pitch: f32,
     yaw: f32,
 }
 
 fn setup(mut commands: Commands) {
-    commands
-        .spawn_bundle(SpatialBundle::visible_identity())
-        .insert(View);
+    commands.spawn((SpatialBundle::VISIBLE_IDENTITY, View));
 }
 
 fn change_view(

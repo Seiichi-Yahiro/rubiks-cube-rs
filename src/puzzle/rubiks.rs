@@ -77,7 +77,7 @@ impl Puzzle for Rubik {
     fn create_meshes(&self) -> Vec<(Mesh, Transform)> {
         if self.dimension == 1 {
             let mesh = self.create_cube_mesh([0, 1, 2, 3, 4, 5]);
-            let transform = Transform::identity();
+            let transform = Transform::IDENTITY;
             vec![(mesh, transform)]
         } else {
             // dimension^3 - (dimension - 2)^3

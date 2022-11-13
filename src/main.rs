@@ -33,7 +33,7 @@ fn setup(
 
     commands.entity(view_entity).add_children(|builder| {
         for (mesh, transform) in puzzle.create_meshes() {
-            builder.spawn_bundle(PbrBundle {
+            builder.spawn(PbrBundle {
                 transform,
                 mesh: meshes.add(mesh),
                 material: material.clone(),
@@ -42,7 +42,7 @@ fn setup(
         }
     });
 
-    commands.spawn_bundle(DirectionalLightBundle {
+    commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             illuminance: 50_000.0,
             shadows_enabled: true,
