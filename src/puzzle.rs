@@ -2,6 +2,7 @@ use crate::StandardMaterial;
 use bevy::prelude::{Handle, Image, Mesh, Transform};
 
 pub mod mirror;
+pub mod pyraminx;
 pub mod rubiks;
 
 const TOTAL_SIDE_LENGTH: f32 = 1.0;
